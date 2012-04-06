@@ -1,0 +1,20 @@
+
+
+Features
+ - Show the full exeption in popup
+ - Autoupdate
+ - Pause the autoupdate, to allow analysis
+ - Permalinks
+ - Endless pages or pagination (fist pagination)
+
+Exploration:
+ - See if we can harvest some of the exception aggrigation from https://github.com/dcramer/sentry
+
+
+
+
+
+
+
+
+                    <script>$('#{{_id}}').popover({content: "{{_id}}"})</script>

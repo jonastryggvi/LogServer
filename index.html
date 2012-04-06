@@ -18,6 +18,44 @@
         .sidebar-nav {
             padding: 9px 0;
         }
+
+
+        .severity {
+            width: 1em;
+
+        }
+
+
+        .host {
+            width: 8em;
+        }
+
+        .utcdate {
+            font-size: 0.85em;
+            color: #666;
+            width: 10em;
+        }
+
+        .level-debug {
+            background-color: #1e90ff;
+        }
+
+        .level-info {
+            background-color: #0055cc;
+        }
+
+        .level-warning {
+            background-color: #faa732;
+        }
+
+        .level-critical {
+            background-color: #db6644;
+        }
+
+        .level-error {
+            background-color: #db2e51;
+        }
+
     </style>
     <link href="css/bootstrap-responsive.css" rel="stylesheet">
 
@@ -40,9 +78,57 @@
         Handlebars.registerHelper("formatEpoc", function(utcSeconds) {
             var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
             d.setUTCSeconds(utcSeconds);
-            return d.toUTCString();
+            var day = d.getUTCDay();
+            if (day < 10) day = '0'+day;
+            var month = d.getUTCMonth();
+            if (month < 10) month = '0'+month;
+            var hour = d.getUTCHours();
+            if (hour < 10) hour = '0'+hour;
+            var minute = d.getUTCMinutes();
+            if (minute < 10) minute = '0'+minute;
+            var second = d.getUTCSeconds();
+            if (second < 10) second = '0'+second;
+
+            return day + '-' + month + '-' + d.getUTCFullYear() +' ' + hour + ':' + minute + ':' + second + '.' + d.getUTCMilliseconds();
         });
-        
+
+        Handlebars.registerHelper("formatSeverity", function(level) {
+            var str;
+            switch (level) {
+                case 2:
+                    str = "critical";
+                    break;
+                case 3:
+                    str = "error";
+                    break;
+                case 4:
+                    str = "warning";
+                    break;
+                case 6:
+                    str = "info";
+                    break;
+                case 7:
+                    str = "debug";
+                    break;
+                default:
+                    str = level
+            }
+            result = '<span class="label level-' + str+ '">' + str + '</span>';
+            return new Handlebars.SafeString(result);
+        });
+
+
+
+        var ES = {
+            host:'http://localhost:9200',
+            index:'graylog2',
+            obj:'message',
+            url:function () {
+                return this.host + '/' + this.index + '/' + this.obj + '/';
+            },
+            search: function() { return this.url() + '_search';}
+        };
+
         $(document).ready(function () {
             var wildcard = { "message": "*LSC*" };
             var postData = {
@@ -51,18 +137,29 @@
                 ],
                 "query" : {
                     "match_all" : {}
-                }
+                },
+                "size": 100
+
             };
 
             $.ajax({
-                url:'http://10.1.20.59:9200/graylog2/message/_search?size=100',
-                dataType:"json",
-                data:JSON.stringify(postData),
-                type:'POST',
+                url: ES.search(),
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: 'POST',
                 success:function (data) {
-                    var source = $("#some-template").html();
+                    var source = $("#log-message-template").html();
                     var template = Handlebars.compile(source);
-                    $("#content-placeholder").html(template(data));
+                    $("#log-content").html(template(data));
+
+                    // Set up the popovers
+//                    $(function () {
+  //                      var popup = function(messageId) {
+    //                        return { title: messageId };
+      //                  };
+        //                $("a[rel=popover]").popover(popup($(this).get("message_id")));
+          //          });
+
                 }
             })
         })
@@ -117,25 +214,26 @@
         <!--/span-->
         <div class="span9">
             <h1>Fresh logs, from the cow..</h1>
-            <table class="table table-striped table-condensed" id="content-placeholder">
+            <table class="table table-striped table-condensed">
                 <thead>
                 <tr>
-                    <th>#</th>
-                    <th>timestamp</th>
-                    <th>host</th>
-                    <th>message</th>
+                    <th>Type</th>
+                    <th>Time</th>
+                    <th>Host</th>
+                    <th>Message</th>
                 </tr>
                 </thead>
-                <tbody>
-                <script id="some-template" type="text/x-handlebars-template">
+                <tbody id="log-content">
+                <script id="log-message-template" type="text/x-handlebars-template">
                     {{#each hits.hits}}
-                    {{#with _source}}
                     <tr>
-                        <td>{{formatEpoc created_at}}</td>
-                        <td>{{host}}</td>
-                        <td>{{message}}</td>
+                        <td class="severity" id="{{_id}}">
+                            {{formatSeverity _source.level}}
+                        </td>
+                        <td class="utcdate">{{formatEpoc _source.created_at}}</td>
+                        <td class="host"><a href="">{{_source.host}}</a></td>
+                        <td>{{_source.message}}</td>
                     </tr>
-                    {{/with}}
                     {{/each}}
                 </script>
                 </tbody>
