@@ -1,7 +1,7 @@
 
 
 # Features
-# Show the full exeption in popup
+* Show the full exeption in popup
 ```javascript
 <script>$('#{{_id}}').popover({content: "{{_id}}"})</script>
 ```
