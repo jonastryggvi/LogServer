@@ -1,7 +1,7 @@
 
 
-= Features =
-* Show the full exeption in popup
+# Features
+# Show the full exeption in popup
 ```javascript
 <script>$('#{{_id}}').popover({content: "{{_id}}"})</script>
 ```
@@ -11,6 +11,6 @@
 * Pagination
 * Endless page
 
-= Exploration =
+# Exploration #
 * See if we can harvest some of the exception aggrigation from https://github.com/dcramer/sentry
 
