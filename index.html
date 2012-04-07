@@ -82,40 +82,39 @@
     <script src="js/logserver.js" type="text/javascript"></script>
 
     <script id="message-popup-contents" type="text/x-handlebars-template">
+        {{#with _source}}
+        <i>
+        {{#if file}}
+        File: {{file}}:{{line}}
+        {{/if }}
+        {{#if facility}}
+        Facility: {{facility}}
+        {{/if }}
+
+        {{#if _process_name}}
+        Process: {{_process_name}}
+            {{#if _pid}}
+            (pid:{{_pid}})
+            {{/if }}
+        {{/if }}
+
+        {{#if thread_name}}
+        [ Thread: {{thread_name}} ]<br/>
+        {{/if }}
+
+        {{#if function}}
+        function:    {{function}}<br/>
+        {{/if }}
+        </i>
+        <br />
         <code>
-            {{#with _source}}
-            {{#if file}}
-            File: {{file}}:{{line}}
-            {{/if }}
-            {{#if facility}}
-            Facility: {{facility}}
-            {{/if }}
-
-            {{#if _process_name}}
-            <code>
-            Process: {{_process_name}}
-                {{#if _pid}}
-                (pid:{{_pid}})
-                {{/if }}
-            </code>
-            {{/if }}
-
-            {{#if thread_name}}
-            [ Thread: {{thread_name}} ]<br/>
-            {{/if }}
-
-            {{#if function}}
-            function:    {{function}}<br/>
-            {{/if }}
-
-            <br/>
 
             {{#if message}}
-            {{message}}<br/>
+            <pre>{{formatCode message}}</pre><br/>
             {{/if }}
 
             {{#if full_message}}
-            {{full_message}}<br/>
+            <pre>{{formatCode full_message}}</pre><br/>
             {{/if }}
 
             {{#if streams}}
@@ -135,6 +134,10 @@
 
     <script type="text/javascript">
         // handlebar formatting helpers
+        Handlebars.registerHelper("formatCode", function(data) {
+           return data.replace(/\n\n/g, '\n');
+        });
+
         Handlebars.registerHelper("formatEpoc", function(utcSeconds) {
             var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
             d.setUTCSeconds(utcSeconds);
