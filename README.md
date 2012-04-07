@@ -1,12 +1,12 @@
 
 
 # Features
-* popover formatting
- * Adding link to codefiles see (https://gist.github.com/2034192)
 * Autoupdate log table
  * Pause the autoupdate, to allow analysis
  * Pagination
  * Endless page
+* popover formatting
+ * Adding link to codefiles see (https://gist.github.com/2034192)
 * Sidebar for every host that has logged last hour
  * Add buttons to toggle logs from specific hosts
 * Permalinks

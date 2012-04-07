@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>CCP LogServer&copy;</title>
+    <title>CCP LogServer &copy;</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -190,6 +190,7 @@
                 return this.host + '/' + this.index + '/' + this.obj + '/' + path;
             }
         };
+
         var popupContentTemplate = Handlebars.compile($("#message-popup-contents").html());
         var popupTitleTemplate = Handlebars.compile($("#message-popup-title").html());
 
@@ -237,13 +238,14 @@
 
 
         $(document).ready(function () {
-            var wildcard = { "message": "*LSC*" };
+            var wildcard = "gray";
             var postData = {
                 "sort" : [
                     { "created_at" : {"order" : "desc" }}
                 ],
-                "query" : {
-                    "match_all" : {}
+                "query": { "query_string": {
+                    // "fields" : ["message^5", "full_message^5"],
+                    "query": '*' + wildcard +'*'}
                 },
                 "size": 100
 
