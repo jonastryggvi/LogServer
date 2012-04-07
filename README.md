@@ -4,6 +4,8 @@
 * Format the popover properly
 * Autoupdate
 * Pause the autoupdate, to allow analysis
+* Sidebar for every host that has logged last hour
+ * Add buttons to toggle logs from specific hosts
 * Permalinks
 * Pagination
 * Endless page
