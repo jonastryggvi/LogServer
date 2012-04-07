@@ -1,89 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>CCP LogServer &copy;</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
+<meta charset="utf-8">
+<title>CCP LogServer &copy;</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
 
-    <!-- Le styles -->
-    <link href="css/bootstrap.css" rel="stylesheet">
-    <style type="text/css">
-        body {
-            padding-top: 60px;
-            padding-bottom: 40px;
-        }
+<!-- Le styles -->
+<link href="css/bootstrap.css" rel="stylesheet">
+<style type="text/css">
+    body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+    }
 
-        .sidebar-nav {
-            padding: 9px 0;
-        }
+    .sidebar-nav {
+        padding: 9px 0;
+    }
+
+    .severity {
+        width: 1em;
+    }
+
+    .severity a:hover {
+        text-decoration: none;
+    }
+
+    .host {
+        width: 8em;
+    }
+
+    .popover-inner {
+        width: auto;
+    }
+
+    .utcdate {
+        font-size: 0.85em;
+        color: #666;
+        width: 10em;
+    }
+
+    .level-debug {
+        background-color: #1e90ff;
+    }
+
+    .level-info {
+        background-color: #0055cc;
+    }
+
+    .level-warning {
+        background-color: #faa732;
+    }
+
+    .level-critical {
+        background-color: #db6644;
+    }
+
+    .level-error {
+        background-color: #db2e51;
+    }
+
+</style>
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+
+<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+<script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script>
+<![endif]-->
+
+<!-- Le fav and touch icons -->
+<link rel="shortcut icon" href="ico/favicon.ico" type="image/x-icon"/>
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+<link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
+
+<script src="js/jquery-1.7.2.js" type="text/javascript"></script>
+<script src="js/bootstrap.js" type="text/javascript"></script>
+<script src="js/handlebars-1.0.0.beta.6.js" type="text/javascript"></script>
+<script src="js/logserver.js" type="text/javascript"></script>
+
+<script id="log-message-template" type="text/x-handlebars-template">
+    {{#each hits.hits}}
+    <tr>
+        <td class="severity">
+            <a href="#" rel="popover" id="{{_id}}">{{formatSeverity _source.level}}</a>
+        </td>
+        <td class="utcdate">{{formatEpoc _source.created_at}}</td>
+        <td class="host"><a href="">{{_source.host}}</a></td>
+        <td>{{_source.message}}</td>
+    </tr>
+    {{/each}}
+</script>
 
 
-        .severity {
-            width: 1em;
-        }
-
-        .severity a:hover {
-            text-decoration: none;
-        }
-
-        .host {
-            width: 8em;
-        }
-
-        .popover-inner {
-            width: auto;
-        }
-
-        .utcdate {
-            font-size: 0.85em;
-            color: #666;
-            width: 10em;
-        }
-
-        .level-debug {
-            background-color: #1e90ff;
-        }
-
-        .level-info {
-            background-color: #0055cc;
-        }
-
-        .level-warning {
-            background-color: #faa732;
-        }
-
-        .level-critical {
-            background-color: #db6644;
-        }
-
-        .level-error {
-            background-color: #db2e51;
-        }
-
-    </style>
-    <link href="css/bootstrap-responsive.css" rel="stylesheet">
-
-    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script>
-    <![endif]-->
-
-    <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="ico/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
-
-    <script src="js/jquery-1.7.2.js" type="text/javascript"></script>
-    <script src="js/bootstrap.js" type="text/javascript"></script>
-    <script src="js/handlebars-1.0.0.beta.6.js" type="text/javascript"></script>
-    <script src="js/logserver.js" type="text/javascript"></script>
-
-    <script id="message-popup-contents" type="text/x-handlebars-template">
-        {{#with _source}}
-        <i>
+<script id="message-popup-contents" type="text/x-handlebars-template">
+    {{#with _source}}
+    <i>
         {{#if file}}
         File: {{file}}:{{line}}
         {{/if }}
@@ -93,9 +106,9 @@
 
         {{#if _process_name}}
         Process: {{_process_name}}
-            {{#if _pid}}
-            (pid:{{_pid}})
-            {{/if }}
+        {{#if _pid}}
+        (pid:{{_pid}})
+        {{/if }}
         {{/if }}
 
         {{#if thread_name}}
@@ -103,173 +116,207 @@
         {{/if }}
 
         {{#if function}}
-        function:    {{function}}<br/>
+        function: {{function}}<br/>
         {{/if }}
-        </i>
-        <br />
-        <code>
+    </i>
+    <br/>
+    <code>
 
-            {{#if message}}
-            <pre>{{formatCode message}}</pre><br/>
-            {{/if }}
+        {{#if message}}
+        <pre>{{formatCode message}}</pre>
+        <br/>
+        {{/if }}
 
-            {{#if full_message}}
-            <pre>{{formatCode full_message}}</pre><br/>
-            {{/if }}
+        {{#if full_message}}
+        <pre>{{formatCode full_message}}</pre>
+        <br/>
+        {{/if }}
 
-            {{#if streams}}
-            streams: {{streams}}<br/>
-            {{/if }}
-            {{/with}}
-        </code>
-    </script>
-
-    <script id="message-popup-title" type="text/x-handlebars-template">
-        {{#with _source}}
-        {{formatSeverity level}}
-        {{host}}
-        <span class='utcdate'>{{formatEpoc created_at}}</span>
+        {{#if streams}}
+        streams: {{streams}}<br/>
+        {{/if }}
         {{/with}}
-    </script>
+    </code>
+</script>
 
-    <script type="text/javascript">
-        // handlebar formatting helpers
-        Handlebars.registerHelper("formatCode", function(data) {
-           return data.replace(/\n\n/g, '\n');
+<script id="message-popup-title" type="text/x-handlebars-template">
+    {{#with _source}}
+    {{formatSeverity level}}
+    {{host}}
+    <span class='utcdate'>{{formatEpoc created_at}}</span>
+    {{/with}}
+</script>
+
+<script type="text/javascript">
+    // handlebar formatting helpers
+    Handlebars.registerHelper("formatCode", function (data) {
+        return data.replace(/\n\n/g, '\n');
+    });
+
+    Handlebars.registerHelper("formatEpoc", function (utcSeconds) {
+        var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
+        d.setUTCSeconds(utcSeconds);
+        var day = d.getUTCDay();
+        if (day < 10) day = '0' + day;
+        var month = d.getUTCMonth();
+        if (month < 10) month = '0' + month;
+        var hour = d.getUTCHours();
+        if (hour < 10) hour = '0' + hour;
+        var minute = d.getUTCMinutes();
+        if (minute < 10) minute = '0' + minute;
+        var second = d.getUTCSeconds();
+        if (second < 10) second = '0' + second;
+
+        return day + '-' + month + '-' + d.getUTCFullYear() + ' ' + hour + ':' + minute + ':' + second + '.' + d.getUTCMilliseconds();
+    });
+
+    Handlebars.registerHelper("formatSeverity", function (level) {
+        var str;
+        switch (level) {
+            case 2:
+                str = "critical";
+                break;
+            case 3:
+                str = "error";
+                break;
+            case 4:
+                str = "warning";
+                break;
+            case 6:
+                str = "info";
+                break;
+            case 7:
+                str = "debug";
+                break;
+            default:
+                str = level
+        }
+        result = '<span class="label level-' + str + '">' + str + '</span>';
+        return new Handlebars.SafeString(result);
+    });
+
+</script>
+<script type="text/javascript">
+    var ES = {
+        host:'http://localhost:9200',
+        index:'graylog2',
+        obj:'message',
+        url:function (path) {
+            return this.host + '/' + this.index + '/' + this.obj + '/' + path;
+        }
+    };
+
+    var popupContentTemplate = Handlebars.compile($("#message-popup-contents").html());
+    var popupTitleTemplate = Handlebars.compile($("#message-popup-title").html());
+
+    function messageContent(messageId) {
+        var data = "";
+        $.ajax({
+                   url:ES.url(messageId),
+                   type:'GET',
+                   success:function (result) {
+                       data = result;
+                   },
+                   async:false
+               });
+
+        return {
+            title:popupTitleTemplate(data),
+            content:popupContentTemplate(data)
+        };
+    }
+
+    var currentPopover = null;
+
+    function hidePopover() {
+        currentPopover.popover('hide');
+        currentPopover.bind('hover', function () {
+            showPopover(currentPopover)
         });
+        currentPopover = null;
+    }
 
-        Handlebars.registerHelper("formatEpoc", function(utcSeconds) {
-            var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
-            d.setUTCSeconds(utcSeconds);
-            var day = d.getUTCDay();
-            if (day < 10) day = '0'+day;
-            var month = d.getUTCMonth();
-            if (month < 10) month = '0'+month;
-            var hour = d.getUTCHours();
-            if (hour < 10) hour = '0'+hour;
-            var minute = d.getUTCMinutes();
-            if (minute < 10) minute = '0'+minute;
-            var second = d.getUTCSeconds();
-            if (second < 10) second = '0'+second;
+    $(document).click(function (event) {
+        if (currentPopover && !$(event.target).parents().hasClass("popover")) {
+            hidePopover();
+        }
+    });
 
-            return day + '-' + month + '-' + d.getUTCFullYear() +' ' + hour + ':' + minute + ':' + second + '.' + d.getUTCMilliseconds();
-        });
+    function showPopover(element) {
+        if (element == currentPopover) return;
+        if (currentPopover) {
+            hidePopover();
+        }
+        currentPopover = element;
+        var id = element.attr("id");
+        var pop = messageContent(id);
+        element.popover({title:pop.title, content:pop.content, trigger:'manual'}).popover('show');
+    }
 
-        Handlebars.registerHelper("formatSeverity", function(level) {
-            var str;
-            switch (level) {
-                case 2:
-                    str = "critical";
-                    break;
-                case 3:
-                    str = "error";
-                    break;
-                case 4:
-                    str = "warning";
-                    break;
-                case 6:
-                    str = "info";
-                    break;
-                case 7:
-                    str = "debug";
-                    break;
-                default:
-                    str = level
-            }
-            result = '<span class="label level-' + str+ '">' + str + '</span>';
-            return new Handlebars.SafeString(result);
-        });
+    var logMessagesTemplate = Handlebars.compile($("#log-message-template").html());
 
-    </script>
-    <script type="text/javascript">
-        var ES = {
-            host:'http://localhost:9200',
-            index:'graylog2',
-            obj:'message',
-            url:function (path) {
-                return this.host + '/' + this.index + '/' + this.obj + '/' + path;
-            }
+    $(document).bind('search', function (event, searchTerm) {
+        var postData = {
+            "sort":[
+                { "created_at":{"order":"desc" }}
+            ],
+            "query":{ "query_string":{
+                // "fields" : ["message^5", "full_message^5"],
+                "query":'*' + searchTerm + '*'}
+            },
+            "size":100
         };
 
-        var popupContentTemplate = Handlebars.compile($("#message-popup-contents").html());
-        var popupTitleTemplate = Handlebars.compile($("#message-popup-title").html());
+        $.ajax({
+            url:ES.url('_search'),
+            dataType:"json",
+            data:JSON.stringify(postData),
+            type:'POST',
+            success:function (data) {
+                $('#log-content').empty();
+                $("#log-content").html(logMessagesTemplate(data));
 
-        function messageContent(messageId) {
-            var data = "";
-            $.ajax({
-                       url: ES.url(messageId),
-                       type: 'GET',
-                       success: function(result) {
-                           data = result;
-                       },
-                       async: false
+               // Set up the popovers
+               $("a[rel=popover]").each(function (index) {
+                   var element = $(this);
+                   element.bind('hover', function () {
+                       showPopover(element)
                    });
-
-            return {
-                title: popupTitleTemplate(data),
-                content: popupContentTemplate(data)
-            };
-        }
-
-        var currentPopover = null;
-
-        function hidePopover() {
-            currentPopover.popover('hide');
-            currentPopover.bind('hover', function() { showPopover(currentPopover)});
-            currentPopover = null;
-        }
-
-        $(document).click(function(event) {
-            if (currentPopover && !$(event.target).parents().hasClass("popover")) {
-                hidePopover();
+               });
             }
+        })
+    });
+
+    //Creates a minimum interval between posted searches.
+    var typewatch = (function() {
+        var timer = 0;
+        return function(callback, ms) {
+            clearTimeout(timer);
+            timer = setTimeout(callback, ms);
+        }
+    })();
+
+    $(document).ready(function () {
+
+        $(document).trigger('search', { terms:''}); // $('#search_txt').val()
+        //Submit on each key pressed, but put in a minimum interval with typewatch
+
+        $('#search_txt').keyup(function() {
+            typewatch(function () {
+                var lastSearchTerm = $('#search_txt').data('lastSearchTerm');
+                if (!lastSearchTerm) {
+                    lastSearchTerm = '';
+                }
+
+                if (lastSearchTerm != $('#search_txt').val()) {
+                    $(document).trigger('search', $('#search_txt').val());
+                }
+                $('#search_txt').data('lastSearchTerm', $('#search_txt').val());
+            }, 250);
         });
 
-        function showPopover(element) {
-            if (element == currentPopover) return;
-            if (currentPopover) {
-                hidePopover();
-            }
-            currentPopover = element;
-            var id = element.attr("id");
-            var pop = messageContent(id);
-            element.popover({title: pop.title, content: pop.content, trigger: 'manual'}).popover('show');
-        }
-
-
-        $(document).ready(function () {
-            var wildcard = "gray";
-            var postData = {
-                "sort" : [
-                    { "created_at" : {"order" : "desc" }}
-                ],
-                "query": { "query_string": {
-                    // "fields" : ["message^5", "full_message^5"],
-                    "query": '*' + wildcard +'*'}
-                },
-                "size": 100
-
-            };
-
-            $.ajax({
-                       url: ES.url('_search'),
-                       dataType: "json",
-                       data: JSON.stringify(postData),
-                       type: 'POST',
-                       success:function (data) {
-                           var source = $("#log-message-template").html();
-                           var template = Handlebars.compile(source);
-                           $("#log-content").html(template(data));
-
-                           // Set up the popovers
-                            $("a[rel=popover]").each(function(index) {
-                                var element = $(this);
-                                element.bind('hover', function() { showPopover(element)});
-                            });
-                       }
-                   })
-        })
-    </script>
+    })
+</script>
 
 </head>
 
@@ -295,7 +342,7 @@
             </div>
             <!--/.nav-collapse -->
             <form class="navbar-search pull-left">
-                <input type="text" class="search-query" placeholder="Search logs...">
+                <input type="text" class="search-query" placeholder="Search logs..." id="search_txt">
             </form>
         </div>
     </div>
@@ -330,18 +377,6 @@
                 </tr>
                 </thead>
                 <tbody id="log-content">
-                <script id="log-message-template" type="text/x-handlebars-template">
-                    {{#each hits.hits}}
-                    <tr>
-                        <td class="severity">
-                            <a href="#" rel="popover" id="{{_id}}">{{formatSeverity _source.level}}</a>
-                        </td>
-                        <td class="utcdate">{{formatEpoc _source.created_at}}</td>
-                        <td class="host"><a href="">{{_source.host}}</a></td>
-                        <td>{{_source.message}}</td>
-                    </tr>
-                    {{/each}}
-                </script>
                 </tbody>
             </table>
         </div>
