@@ -1,10 +1,7 @@
 
 
 # Features
-* Show the full exeption in popup
-```javascript
-<script>$('#{{_id}}').popover({content: "{{_id}}"})</script>
-```
+* Format the popover properly
 * Autoupdate
 * Pause the autoupdate, to allow analysis
 * Permalinks

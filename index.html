@@ -22,9 +22,11 @@
 
         .severity {
             width: 1em;
-
         }
 
+        .severity a:hover {
+            text-decoration: none;
+        }
 
         .host {
             width: 8em;
@@ -74,6 +76,27 @@
     <script src="js/bootstrap.js" type="text/javascript"></script>
     <script src="js/handlebars-1.0.0.beta.6.js" type="text/javascript"></script>
     <script src="js/logserver.js" type="text/javascript"></script>
+
+    <script id="log-message-popup" type="text/x-handlebars-template">
+        <code>
+            {{#with _source}}
+            function:    {{function}}
+            thread_name: {{thread_name}}
+            host:        {{host}},
+            process_name: {{_process_name}}
+            pid: {{_pid}}
+            full_message: {{full_message}}
+            line: {{line}}
+            message: {{message}}
+            level: {{level}}
+            facility: {{facility}}
+            file: {{file}}
+            created_at: {{created_at}}
+            streams: {{streams}}
+            {{/with}}
+        </code>
+    </script>
+
 
     <script type="text/javascript">
         // handlebar formatting helpers
@@ -131,6 +154,48 @@
             search: function() { return this.url() + '_search';}
         };
 
+        function messageContent(messageId) {
+            var data = "";
+            $.ajax({
+                       url: ES.url() + messageId,
+                       dataType: "json",
+                       type: 'GET',
+                       success: function(result) {
+                           data = result;
+                       },
+                       async: false
+                   });
+            var source = $("#log-message-popup").html();
+            var template = Handlebars.compile(source);
+            return template(data);
+        }
+
+        var currentPopover = null;
+
+        function hidePopover() {
+            currentPopover.popover('hide');
+            currentPopover.bind('hover', function() { showPopover(currentPopover)});
+            currentPopover = null;
+        }
+
+        $(document).click(function(event) {
+            if (currentPopover && !$(event.target).parents().hasClass("popover")) {
+                hidePopover();
+            }
+        });
+
+        function showPopover(element) {
+            if (element == currentPopover) return;
+            if (currentPopover) {
+                hidePopover();
+            }
+            currentPopover = element;
+            var id = element.attr("id");
+            var popContent = messageContent(id);
+            element.popover({title: id, content: popContent, trigger: 'manual'}).popover('show');
+        }
+
+
         $(document).ready(function () {
             var wildcard = { "message": "*LSC*" };
             var postData = {
@@ -155,13 +220,10 @@
                            $("#log-content").html(template(data));
 
                            // Set up the popovers
-//                    $(function () {
-                           //                      var popup = function(messageId) {
-                           //                        return { title: messageId };
-                           //                  };
-                           //                $("a[rel=popover]").popover(popup($(this).get("message_id")));
-                           //          });
-
+                            $("a[rel=popover]").each(function(index) {
+                                var element = $(this);
+                                element.bind('hover', function() { showPopover(element)});
+                            });
                        }
                    })
         })
@@ -229,8 +291,8 @@
                 <script id="log-message-template" type="text/x-handlebars-template">
                     {{#each hits.hits}}
                     <tr>
-                        <td class="severity" id="{{_id}}">
-                            {{formatSeverity _source.level}}
+                        <td class="severity">
+                            <a href="#" rel="popover" id="{{_id}}">{{formatSeverity _source.level}}</a>
                         </td>
                         <td class="utcdate">{{formatEpoc _source.created_at}}</td>
                         <td class="host"><a href="">{{_source.host}}</a></td>
