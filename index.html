@@ -157,6 +157,15 @@
     {{/with}}
 </script>
 
+<script id="alert-box" type="text/x-handlebars-template">
+<div class="alert alert-block">
+    <a class="close" data-dismiss="alert">?</a>
+    <h4 class="alert-heading">{{exception }}</h4>
+    <p><i>While fetching {{setting.url}} with {{setting.data}}</i></p>
+    {{response}}
+</div>
+</script>
+
 <script type="text/javascript">
     // handlebar formatting helpers
     Handlebars.registerHelper("formatCode", function (data) {
@@ -204,9 +213,17 @@
         result = '<span class="label level-' + str + '">' + str + '</span>';
         return new Handlebars.SafeString(result);
     });
-
 </script>
 <script type="text/javascript">
+    $(document).ajaxError(function(e, xhr, settings, exception) {
+        var errorContentTemplate = Handlebars.compile($("#alert-box").html());
+        $("#log-content").html(errorContentTemplate({
+            setting: settings,
+            exception: exception,
+            response: xhr.responseText
+        }));
+    });
+
     var ES = {
         host:'http://localhost:9200',
         index:'graylog2',
@@ -270,9 +287,12 @@
             "sort":[
                 { "created_at":{"order":"desc" }}
             ],
-            "query":{ "query_string":{
-                // "fields" : ["message^5", "full_message^5"],
-                "query":'*' + searchTerm + '*'}
+            "query": {
+                "query_string": {
+                    // "fields" : ["message^5", "full_message^5"],
+                    "query":'*' + searchTerm + '*',
+                    //"default_operator": "and"
+                }
             },
             "size":100
         };
