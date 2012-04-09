@@ -44,7 +44,7 @@
     .utcdate {
         font-size: 0.85em;
         color: #666;
-        width: 10em;
+        width: 12em;
     }
 
     .level-debug {
@@ -92,7 +92,7 @@
         <td class="severity">
             <a href="#" rel="popover" id="{{_id}}">{{formatSeverity _source.level}}</a>
         </td>
-        <td class="utcdate">{{formatEpoc _source.created_at}}</td>
+        <td class="utcdate">{{formatEpoch _source.created_at}}</td>
         <td class="host"><a href="">{{_source.host}}</a></td>
         <td>
             <div class="log-message-height">
@@ -153,7 +153,7 @@
     {{#with _source}}
     {{formatSeverity level}}
     {{host}}
-    <span class='utcdate'>{{formatEpoc created_at}}</span>
+    <span class='utcdate'>{{formatEpoch created_at}}</span>
     {{/with}}
 </script>
 
@@ -166,52 +166,53 @@
 </div>
 </script>
 
+<script id="host-list-content" type="text/x-handlebars-template">
+    {{#each facets.hosts.terms}}
+    <li><a href="#">{{term}} <span class="badge badge-info">{{count}}</span></a></li>
+    {{/each}}
+</script>
+
 <script type="text/javascript">
     // handlebar formatting helpers
     Handlebars.registerHelper("formatCode", function (data) {
         return data.replace(/\n\n/g, '\n');
     });
 
-    Handlebars.registerHelper("formatEpoc", function (utcSeconds) {
-        var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
-        d.setUTCSeconds(utcSeconds);
-        var day = d.getUTCDay();
-        if (day < 10) day = '0' + day;
-        var month = d.getUTCMonth();
-        if (month < 10) month = '0' + month;
-        var hour = d.getUTCHours();
-        if (hour < 10) hour = '0' + hour;
-        var minute = d.getUTCMinutes();
-        if (minute < 10) minute = '0' + minute;
-        var second = d.getUTCSeconds();
-        if (second < 10) second = '0' + second;
+    Handlebars.registerHelper("formatEpoch", function (utcSeconds) {
+        function pad(number) {
+            return number < 10 ? '0' + number : number;
+        }
+        var d = new Date(utcSeconds * 1000);
+        var date = pad(d.getUTCDate());
+        var month = pad(d.getUTCMonth());
+        var hour = pad(d.getUTCHours());
+        var minute = pad(d.getUTCMinutes());
+        var second = pad(d.getUTCSeconds());
 
-        return day + '-' + month + '-' + d.getUTCFullYear() + ' ' + hour + ':' + minute + ':' + second + '.' + d.getUTCMilliseconds();
+        return date + '-' + month + '-' + d.getUTCFullYear() + ' ' + hour + ':' + minute + ':' + second + '.' + d.getUTCMilliseconds();
     });
 
+
+    var serverityMap = {
+        // 0 (Emergency) and 1 (Alert) levels are reserved for OS kernel.
+        0: 'emergency',
+        1: 'alert',
+        2: 'critical',
+        3: 'error',
+        4: 'warning',
+        5: 'notice',
+        6: "info",
+        7: 'debug'
+    }
     Handlebars.registerHelper("formatSeverity", function (level) {
-        var str;
-        switch (level) {
-            case 2:
-                str = "critical";
-                break;
-            case 3:
-                str = "error";
-                break;
-            case 4:
-                str = "warning";
-                break;
-            case 6:
-                str = "info";
-                break;
-            case 7:
-                str = "debug";
-                break;
-            default:
-                str = level
+        result = ''
+        if (level in serverityMap) {
+            result = '<span class="label level-' + serverityMap[level] + '">' + serverityMap[level] + '</span>';
+        } else {
+            result = '<span class="label">?' + level + '?</span>';
         }
-        result = '<span class="label level-' + str + '">' + str + '</span>';
         return new Handlebars.SafeString(result);
+
     });
 </script>
 <script type="text/javascript">
@@ -281,9 +282,12 @@
     }
 
     var logMessagesTemplate = Handlebars.compile($("#log-message-template").html());
+    var hostsListTemplate = Handlebars.compile($("#host-list-content").html());
+
 
     $(document).bind('search', function (event, searchTerm) {
         var postData = {
+            "size":100,
             "sort":[
                 { "created_at":{"order":"desc" }}
             ],
@@ -291,10 +295,18 @@
                 "query_string": {
                     // "fields" : ["message^5", "full_message^5"],
                     "query":'*' + searchTerm + '*',
-                    //"default_operator": "and"
+                    "default_operator": "AND"
                 }
             },
-            "size":100
+            "facets" : {
+                "hosts" : {
+                    "terms" : {
+                        "fields" : ["host"],
+                        // "field" : "facility",
+                        "size" : 10
+                    }
+                }
+            }
         };
 
         $.ajax({
@@ -306,6 +318,8 @@
                 // $('#log-content').empty();
                 // $("#log-content > tbody").append(logMessagesTemplate(data));
                 $("#log-content").html(logMessagesTemplate(data));
+                $("#host-list").html(hostsListTemplate(data));
+
 
                // Set up the popovers
                $("a[rel=popover]").each(function (index) {
@@ -329,7 +343,7 @@
 
     $(document).ready(function () {
 
-        $(document).trigger('search', { terms:''}); // $('#search_txt').val()
+        $(document).trigger('search', ''); // $('#search_txt').val()
         //Submit on each key pressed, but put in a minimum interval with typewatch
 
         $('#search_txt').keyup(function() {
@@ -385,10 +399,10 @@
         <div class="span3">
             <div class="well sidebar-nav">
                 <ul class="nav nav-list">
-                    <li class="nav-header">Processes</li>
-                    <li class="active"><a href="#">Eve</a></li>
-                    <li><a href="#">SSO</a></li>
-                    <li><a href="#">VGS</a></li>
+                    <li class="nav-header">Log Hosts</li>
+                    <div id="host-list">
+
+                    </div>
                     <li class="nav-header">Runs</li>
                     <li><a href="#">Last run..</a></li>
                     <li><a href="#">Yesterday</a></li>
