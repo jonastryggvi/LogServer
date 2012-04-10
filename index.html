@@ -172,6 +172,12 @@
     {{/each}}
 </script>
 
+<script id="time-series-content" type="text/x-handlebars-template">
+    {{#each facets.msgCounts.entries}}
+    <li><a href="#">{{formatEpoch key}} <span class="badge badge-info">{{count}}</span></a></li>
+    {{/each}}
+</script>
+
 <script type="text/javascript">
     // handlebar formatting helpers
     Handlebars.registerHelper("formatCode", function (data) {
@@ -283,11 +289,12 @@
 
     var logMessagesTemplate = Handlebars.compile($("#log-message-template").html());
     var hostsListTemplate = Handlebars.compile($("#host-list-content").html());
+    // var timeListTemplate = Handlebars.compile($("#time-series-content").html())
 
 
     $(document).bind('search', function (event, searchTerm) {
         var postData = {
-            "size":100,
+            "size": 100,
             "sort":[
                 { "created_at":{"order":"desc" }}
             ],
@@ -305,13 +312,13 @@
                         // "field" : "facility",
                         "size" : 10
                     }
-                },
-                "msgCounts" : {
+                }
+/*                "msgCounts" : {
                     "histogram" : {
                         "field" : "created_at",
-                        "time_interval" : "1h"
+                        "interval" : "3600"
                     }
-                }
+                }*/
             }
         };
 
@@ -325,6 +332,7 @@
                 // $("#log-content > tbody").append(logMessagesTemplate(data));
                 $("#log-content").html(logMessagesTemplate(data));
                 $("#host-list").html(hostsListTemplate(data));
+                //$("#time-series").html(timeListTemplate(data));
 
 
                // Set up the popovers
@@ -349,7 +357,7 @@
 
     $(document).ready(function () {
 
-        $(document).trigger('search', ''); // $('#search_txt').val()
+        $(document).trigger('search', '');
         //Submit on each key pressed, but put in a minimum interval with typewatch
 
         $('#search_txt').keyup(function() {
@@ -410,8 +418,9 @@
 
                     </div>
                     <li class="nav-header">Runs</li>
-                    <li><a href="#">Last run..</a></li>
-                    <li><a href="#">Yesterday</a></li>
+                    <div id="time-series">
+
+                    </div>
                 </ul>
             </div>
             <!--/.well -->
