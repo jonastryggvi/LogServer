@@ -93,13 +93,13 @@
     {{#each hits.hits}}
     <tr>
         <td class="severity">
-            <a href="#" rel="popover" id="{{_id}}">{{formatSeverity _source.level}}</a>
+            <a href="#" rel="popover" id="{{_id}}">{{formatSeverity fields.level}}</a>
         </td>
-        <td class="utcdate">{{formatEpoch _source.created_at}}</td>
-        <td class="host"><a href="">{{_source.host}}</a></td>
+        <td class="utcdate">{{formatEpoch fields.created_at}}</td>
+        <td class="host"><a href="">{{fields.host}}</a></td>
         <td>
             <div class="log-message-height">
-            {{_source.message}}
+            {{fields.message}}
             </div>
         </td>
     </tr>
@@ -298,12 +298,14 @@
     $(document).bind('search', function (event, searchTerm) {
         var postData = {
             "size": 100,
-            "sort":[
-                { "created_at":{"order":"desc" }}
-            ],
+            // Sort by time
+            "sort": [ { "created_at": { "order":"desc" }} ],
+            // Limit the number of fields returned in the big query
+            "fields" : ["message", "created_at", "host", "level"],
+            // Define the query
             "query": {
                 "query_string": {
-                    // "fields" : ["message^5", "full_message^5"],
+                    // wildcard query by default
                     "query":'*' + searchTerm + '*',
                     "default_operator": "AND"
                 }
@@ -311,12 +313,11 @@
             "facets" : {
                 "hosts" : {
                     "terms" : {
-                        "fields" : ["host"],
-                        // "field" : "facility",
-                        "size" : 10
+                        "fields" : ["host"]
                     }
                 }
-/*                "msgCounts" : {
+/*              I disabled this Facet as it is very slow.. probably cause the created_at isn't a date field in ES
+                "msgCounts" : {
                     "histogram" : {
                         "field" : "created_at",
                         "interval" : "3600"
